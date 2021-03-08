@@ -10,6 +10,10 @@ library(xts)
 library(PerformanceAnalytics)
 library(dplyr)
 library(ggplot2)
+library(magrittr)
+library(tidyr)
+library(PerformanceAnalytics)
+library(corrplot)
 #############
 
 # 12개월 모멘텀 이용 포트폴리오
@@ -87,9 +91,6 @@ data_market[invest_mom_neutral,] %>%
 # 우량주(퀄리티) = 기꺼이 프리미엄을 지불하려고 함 -> 수익률 높음 
 
 # 퀄리티 지표인 매출총이익, 밸류 지표인 PBR로 두 지표 관계 확인
-library(stringr)
-library(dplyr)
-
 KOR_value = read.csv('data/KOR_value.csv',row.names = 1,
                      stringsAsFactors = FALSE)
 KOR_fs = readRDS('data/KOR_fs.Rds')
@@ -129,10 +130,6 @@ cbind(data_pbr, data_gpa) %>%
 # 마법공식은 이 두가지 지표의 랭킹을 구한 후 랭킹의 합 상위 30개 종목을 1년간 보유한 후 매도하는 것
 
 # 통상적으로 이율대신 PER, 투하자본수익률 대신 ROE를 사용함! but 우리 데이터에서는 구하기 가능
-
-library(stringr)
-library(dplyr)
-
 KOR_value = read.csv('data/KOR_value.csv', row.names=1,
                      stringsAsFactors = FALSE)
 KOR_fs = readRDS('data/KOR_fs.Rds')
@@ -181,9 +178,6 @@ KOR_ticker[invest_magic,] %>%
           투하자본수익률 = round(magic_roc[invest_magic,],4))
 
 ## 이상치 데이터 제거 및 팩터의 결합
-library(magrittr)
-library(ggplot2)
-
 KOR_value = read.csv('data/KOR_value.csv', row.names = 1,
                      stringsAsFactors = FALSE)
 
@@ -194,8 +188,6 @@ KOR_value %>% ggplot(aes(x=PBR))+
 # -> 오른쪽으로 꼬리가 매우 긴 분포 --> PBR에 508이라는 이상치데이터가 있기 때문!!
 
 # 1. Trim (이상치 데이터 삭제)
-library(dplyr)
-
 value_trim = KOR_value %>% 
   select(PBR) %>% 
   mutate(PBR = ifelse(percent_rank(PBR)>0.99, NA, PBR),
@@ -219,8 +211,6 @@ value_winsor %>%
 
 ## 팩터의 결합방법
 # 단순히 랭킹을 더하는 것의 장덤은 극단치로 인한 효과 제거, 균등한 분포를 가진다는 것
-library(tidyr)
-
 KOR_value %>% 
   mutate_all(list(~min_rank(.))) %>% 
   gather() %>% 
@@ -243,9 +233,6 @@ KOR_value %>%
 # 퀄리티(자기자본이익률, 매출총이익, 영업활동현금흐롬)
 # 밸류(PBR, PER, PSR, PCR)
 # 모멘텀(3/6/12개월 수익률)
-library(xts)
-library(stringr)
-
 KOR_fs = readRDS('data/KOR_fs.Rds')
 KOR_value = read.csv('data/KOR_value.csv', row.names=1, stringsAsFactors = FALSE)
 KOR_price = read.csv('data/KOR_price.csv', row.names=1, stringsAsFactors = FALSE) %>% as.xts()
@@ -289,9 +276,6 @@ factor_value %>%
 
 
 # 모멘텀 지표
-library(PerformanceAnalytics)
-library(dplyr)
-
 ret_3m = Return.calculate(KOR_price) %>% xts::last(60) %>% 
   sapply(.,function(x){prod(1+x)-1})
 ret_6m = Return.calculate(KOR_price) %>% xts::last(120) %>% 
@@ -311,7 +295,7 @@ factor_mom %>%
   ggplot(aes(x=`.`))+geom_histogram()
 
 # 각 팩터 간 상관관계
-library(corrplot)
+
 
 cbind(factor_quality, factor_value, factor_mom) %>% 
   data.frame() %>% 
